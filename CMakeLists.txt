@@ -6,7 +6,8 @@ endif ()
 
 project(
         "FooLib" # This will exposed as the variable PROJECT_NAME.
-        VERSION 0.1.0 # Used for installation and defines variables PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH, and PROJECT_VERSION_TWEAK.
+        VERSION 0.1.0 # Used for installation and defines variables PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR,
+        #PROJECT_VERSION_PATCH, and PROJECT_VERSION_TWEAK.
         LANGUAGES CXX
 )
 
@@ -45,7 +46,7 @@ cmake_dependent_option(${PROJECT_NAME}_BUILD_TESTS
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Whe building a shared library, do not export all symbols by default
+# Building a shared library, do not export all symbols by default
 # gcc (and hence clang) are wrong about this.
 #
 # For more information, see https://gcc.gnu.org/wiki/Visibility and https://www.youtube.com/embed/m0DwB4OvDXk
@@ -79,7 +80,6 @@ target_compile_features(${TARGET_NAME} PRIVATE cxx_std_14)
 target_set_warnings(${TARGET_NAME} ENABLE ALL AS_ERROR ALL DISABLE Annoying) # Helper that can set default warning flags for you
 target_enable_lto(${TARGET_NAME} optimized) #enable lto if available for non-debug configurations
 
-# Since we put the public interface headers in the include directory, we need to tell the compiler so that we can #include <file>.
 target_include_directories(${TARGET_NAME}
                            PUBLIC # The folder must be used in the include path for any target using this library
                            $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
@@ -89,7 +89,9 @@ target_include_directories(${TARGET_NAME}
 # The following properties are useful when you want to have an 'install' target
 set_target_properties(${TARGET_NAME}
                       PROPERTIES
-                      #        PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/foo.h # Headers listed here will automatically be copied when installing. Note that directories hierarchy is not preserved.
+                      # PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/foo.h
+                      # Headers listed here will automatically be copied when installing.
+                      # Note that directories hierarchy is not preserved.
                       DEBUG_POSTFIX d
                       )
 
@@ -112,8 +114,8 @@ if (${PROJECT_NAME}_BUILD_TESTS)
 
     #    add_subdirectory(tests)
 
-    # You can setup some custom variables and add them to the CTestCustom.cmake.in template to have custom ctest settings
-    # For example, you can exclude some directories from the coverage reports such as third-parties and tests
+    # Setup some custom variables and add them to the CTestCustom.cmake.in template to have custom ctest settings
+    # For example, exclude some directories from the coverage reports such as third-parties and tests
     configure_file(
             ${CMAKE_CURRENT_LIST_DIR}/cmake/CTestCustom.cmake.in
             ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake
@@ -140,9 +142,7 @@ endif ()
 
 # Packaging
 if (${PROJECT_NAME}_INSTALL)
-    # If we want to use CPack, we need to include it so that it populates variables from our CMakeLists.txt.
-    # This will also create a `package` target on supported build systems (make, ninja, VS).
-    # There are various CPACK_* variables you can set before `include(CPack)` to configure it (see https://cmake.org/cmake/help/latest/module/CPack.html#variables-common-to-all-cpack-generators).
+    # https://cmake.org/cmake/help/latest/module/CPack.html#variables-common-to-all-cpack-generators
     set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_LIST_DIR}/README.md)
     include(CPack)
 
@@ -155,7 +155,7 @@ if (${PROJECT_NAME}_INSTALL)
     write_basic_package_version_file(
             ${PROJECT_NAME}ConfigVersion.cmake # The name of the version file needed by find_package.
             VERSION ${PROJECT_VERSION}         # The version of the project, already set by the `project` command at the top of this file
-            COMPATIBILITY SameMajorVersion     # We use semantic versioning, backward compatibity is only guaranteed for a same major version
+            COMPATIBILITY SameMajorVersion     # We use semantic versioning, backward compatibility is only guaranteed for a same major version
     )
 
 
@@ -179,8 +179,8 @@ if (${PROJECT_NAME}_INSTALL)
     # It will then need a call to `install(EXPORT)`
     install(
             TARGETS
-            ${TARGET_NAME}      # ... and libraries
-            #          fmt         # If we compiled other libraries using add_subdirectory instead of find_package (target is not exported), we'll need to export them too (they are needed for linking) your library.
+            ${TARGET_NAME}
+            # fmt # All targets compiled by this project must be exported
             EXPORT ${PROJECT_NAME}_Targets
             # Following is only needed pre-cmake3.14
             #    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -192,11 +192,11 @@ if (${PROJECT_NAME}_INSTALL)
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
-    # This time, install all the exported targets under the ${PROJECT_NAME}_Targets name.
+    # Install all the exported targets under the ${PROJECT_NAME}_Targets name.
     install(
             EXPORT ${PROJECT_NAME}_Targets
-            NAMESPACE ${PROJECT_NAME}::        # Always specify a namespace so that users can make sure they link targets with transitive properties and not only the library
-            FILE ${PROJECT_NAME}Targets.cmake  # This is the file that needs to be included from your *Config.cmake. Otherwise, you could just make this your actual *Config.cmake file.
+            NAMESPACE ${PROJECT_NAME}::        # Link targets with transitive properties and not only the library
+            FILE ${PROJECT_NAME}Targets.cmake  # This is the file that needs to be included from your *Config.cmake.
             DESTINATION ${${PROJECT_NAME}_INSTALL_CMAKEDIR}
     )
 
