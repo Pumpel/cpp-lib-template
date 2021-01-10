@@ -39,9 +39,9 @@ option(${PROJECT_NAME}_INSTALL "" ON)
 
 # Use own option for tests, in case the library is added through add_subdirectory
 cmake_dependent_option(${PROJECT_NAME}_BUILD_TESTS
-                       "Enable ${PROJECT_NAME} project tests targets" ON # By default we want tests if CTest is enabled
-                       "BUILD_TESTING" OFF # Stay coherent with CTest variables
-                       )
+        "Enable ${PROJECT_NAME} project tests targets" ON # By default we want tests if CTest is enabled
+        "BUILD_TESTING" OFF # Stay coherent with CTest variables
+        )
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -55,23 +55,28 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 # Check for LTO support (needs to be after project(...) )
 find_lto(CXX)
 
-find_package(fmt REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 
 set(TARGET_NAME ${PROJECT_NAME})
 
 set(TARGET_HEADER
-    include/foo.h
-    )
+        include/foo.h
+        )
 
 set(TARGET_SOURCES
-    source/foo.cpp
-    source/foo-impl.h
-    )
+        source/foo.cpp
+        source/foo-impl.h
+        )
 
 add_library(${TARGET_NAME}
-            ${TARGET_SOURCES}
-            ${TARGET_HEADER}
-            )
+        ${TARGET_SOURCES}
+        ${TARGET_HEADER}
+        )
+# Generates a suitable mytgt_export.h
+# Ensures MYTGHT_EXPORT is defined
+# Adds MyTgt_EXPORTS definition to MyTgt
+include(GenerateExportHeader)
+generate_export_header(${TARGET_NAME})
 
 target_compile_features(${TARGET_NAME} PRIVATE cxx_std_14)
 
@@ -80,34 +85,37 @@ target_set_warnings(${TARGET_NAME} ENABLE ALL AS_ERROR ALL DISABLE Annoying) # H
 target_enable_lto(${TARGET_NAME} optimized) #enable lto if available for non-debug configurations
 
 target_include_directories(${TARGET_NAME}
-                           PUBLIC # The folder must be used in the include path for any target using this library
-                           "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
-                           "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                           "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
-                           # Due to the way installation work, we only want this path set when building, not once installed
-                           )
+        PUBLIC # The folder must be used in the include path for any target using this library
+        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
+        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
+        # Due to the way installation work, we only want this path set when building, not once installed
+        )
 
 # The following properties are useful when you want to have an 'install' target
 set_target_properties(${TARGET_NAME}
-                      PROPERTIES
-                      # PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/foo.h
-                      # Headers listed here will automatically be copied when installing.
-                      # Note that directories hierarchy is not preserved.
-                      DEBUG_POSTFIX d
-                      )
+        PROPERTIES
+        # PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/foo.h
+        # Headers listed here will automatically be copied when installing.
+        # Note that directories hierarchy is not preserved.
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}
+        DEBUG_POSTFIX d
+        )
 
 # We tell CMake what are the target dependencies
 target_link_libraries(${TARGET_NAME}
-                      PRIVATE # fmt is only needed to build, not to use this library
-                      fmt::fmt
-                      )
-add_library(${TARGET_NAME}::${TARGET_NAME} ALIAS ${TARGET_NAME})
+        PRIVATE # fmt is only needed to build, not to use this library
+        fmt::fmt
+        )
+add_library(FooLib::FooLib ALIAS ${TARGET_NAME})
 
 
 # Tests
 if (${PROJECT_NAME}_BUILD_TESTS)
     # Let the user add options to the test runner if needed
-    set(TEST_RUNNER_PARAMS "--force-colors=true" CACHE STRING "Options to add to our test runners commands")
+#    set(TEST_RUNNER_PARAMS "--force-colors=true" CACHE STRING "Options to add to our test runners commands")
 
     # In a real project you most likely want to exclude test folders
     # list(APPEND CUSTOM_COVERAGE_EXCLUDE "/test/")
@@ -116,19 +124,19 @@ if (${PROJECT_NAME}_BUILD_TESTS)
 
     # Setup some custom variables and add them to the CTestCustom.cmake.in template to have custom ctest settings
     # For example, exclude some directories from the coverage reports such as third-parties and tests
-    configure_file(
-            ${CMAKE_CURRENT_LIST_DIR}/cmake/CTestCustom.cmake.in
-            ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake
-            @ONLY
-    )
+#    configure_file(
+#            ${CMAKE_CURRENT_LIST_DIR}/cmake/CTestCustom.cmake.in
+#            ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake
+#            @ONLY
+#    )
 endif ()
 
 
 # Doxygen
 if (${PROJECT_NAME}_USE_DOXYGEN AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.9)
     find_package(Doxygen
-                 OPTIONAL_COMPONENTS dot mscgen dia
-                 )
+            OPTIONAL_COMPONENTS dot mscgen dia
+            )
     if (DOXYGEN_FOUND)
         set(DOXYGEN_USE_MDFILE_AS_MAINPAGE README.md)
         doxygen_add_docs(
@@ -154,7 +162,7 @@ if (${PROJECT_NAME}_INSTALL)
     # Use version checking helper provided by CMake so that users can safely use a version number in their find_package calls
     write_basic_package_version_file(
             ${PROJECT_NAME}ConfigVersion.cmake # The name of the version file needed by find_package.
-            VERSION ${PROJECT_VERSION}         # The version of the project, already set by the `project` command at the top of this file
+            VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}         # The version of the project, already set by the `project` command at the top of this file
             COMPATIBILITY SameMajorVersion     # We use semantic versioning, backward compatibility is only guaranteed for a same major version
     )
 
@@ -205,13 +213,21 @@ if (${PROJECT_NAME}_INSTALL)
     # If you do not list headers in the PUBLIC_HEADER property, you will need to copy them using `install(FILES)` or `install(DIRECTORY)` too.
     # In that case, you can use CMAKE_INSTALL_INCLUDEDIR as the base destination path.
     install(FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-            ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
             DESTINATION
-            ${${PROJECT_NAME}_INSTALL_CMAKEDIR}
+            "${${PROJECT_NAME}_INSTALL_CMAKEDIR}"
             )
 
-    install(FILES ${TARGET_HEADER} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/FooLib")
+    install(FILES
+            "${TARGET_HEADER}"
+            DESTINATION
+            "${CMAKE_INSTALL_INCLUDEDIR}/FooLib")
 
+    string(TOLOWER "${TARGET_NAME}_export.h" GENERATED_TARGET_EXPORTS_FILE)
+    install(FILES
+            "${CMAKE_CURRENT_BINARY_DIR}/${GENERATED_TARGET_EXPORTS_FILE}"
+            DESTINATION
+            "${CMAKE_INSTALL_INCLUDEDIR}/FooLib")
 endif ()
 
