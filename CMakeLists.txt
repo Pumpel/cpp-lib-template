@@ -7,8 +7,13 @@ endif()
 project(
     "FooLib" # This will exposed as the variable PROJECT_NAME.
     VERSION 0.1.0 # Used for installation and defines variables PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH, and PROJECT_VERSION_TWEAK.
-    LANGUAGES C CXX # Used to determine the languages to use based on file extensions
+    LANGUAGES CXX
 )
+
+if (NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type selected, default to Release")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+endif ()
 
 # Standard CMake modules
 
@@ -27,6 +32,7 @@ include(Warnings)
 include(CopyDllsForDebug)
 include(Coverage)
 
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 option(${PROJECT_NAME}_USE_DOXYGEN "Add a doxygen target to generate the documentation" ON)
 option(${PROJECT_NAME}_USE_ADDITIONAL_SOURCEFILE "Use the additional source file" ON)
 option(${PROJECT_NAME}_INSTALL "" ON)
@@ -91,9 +97,12 @@ add_library(${TARGET_NAME}::${TARGET_NAME} ALIAS ${TARGET_NAME})
 if(${PROJECT_NAME}_BUILD_TESTS)
     # Let the user add options to the test runner if needed
     set(TEST_RUNNER_PARAMS "--force-colors=true" CACHE STRING "Options to add to our test runners commands")
+
     # In a real project you most likely want to exclude test folders
     # list(APPEND CUSTOM_COVERAGE_EXCLUDE "/test/")
+
 #    add_subdirectory(tests)
+
     # You can setup some custom variables and add them to the CTestCustom.cmake.in template to have custom ctest settings
     # For example, you can exclude some directories from the coverage reports such as third-parties and tests
     configure_file(
