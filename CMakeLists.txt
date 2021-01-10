@@ -113,7 +113,7 @@ if (${PROJECT_NAME}_BUILD_TESTS)
     # In a real project you most likely want to exclude test folders
     # list(APPEND CUSTOM_COVERAGE_EXCLUDE "/test/")
 
-    #    add_subdirectory(tests)
+    add_subdirectory(tests)
 
     # Setup some custom variables and add them to the CTestCustom.cmake.in template to have custom ctest settings
     # For example, exclude some directories from the coverage reports such as third-parties and tests
