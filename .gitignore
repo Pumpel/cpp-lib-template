@@ -50,8 +50,10 @@ Testing/
 *.su
 
 /cmake-build-debug/
+/cmake-build-install_dir/
 /cmake-build-debug-install_test/
 /external/fmt/
 /external/doctest/
 /external/spdlog/
+
 

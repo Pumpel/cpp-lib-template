@@ -68,6 +68,13 @@ set(TARGET_SOURCES
         source/foo-impl.h
         )
 
+if (NOT_APPLE)
+    # $ORIGIN dir of target
+    # https://youtu.be/m0DwB4OvDXk 49:41
+    # The install RPATH will be set
+    set(CMAKE_INSTALL_RPATH $ORIGIN)
+endif ()
+
 add_library(${TARGET_NAME}
         ${TARGET_SOURCES}
         ${TARGET_HEADER}
@@ -79,10 +86,6 @@ include(GenerateExportHeader)
 generate_export_header(${TARGET_NAME})
 
 target_compile_features(${TARGET_NAME} PRIVATE cxx_std_14)
-
-# CMake scripts extensions
-target_set_warnings(${TARGET_NAME} ENABLE ALL AS_ERROR ALL DISABLE Annoying) # Helper that can set default warning flags for you
-target_enable_lto(${TARGET_NAME} optimized) #enable lto if available for non-debug configurations
 
 target_include_directories(${TARGET_NAME}
         PUBLIC # The folder must be used in the include path for any target using this library
@@ -111,6 +114,9 @@ target_link_libraries(${TARGET_NAME}
         )
 add_library(FooLib::FooLib ALIAS ${TARGET_NAME})
 
+# CMake scripts extensions
+target_set_warnings(${TARGET_NAME} ENABLE ALL AS_ERROR ALL DISABLE Annoying) # Helper that can set default warning flags for you
+target_enable_lto(${TARGET_NAME} optimized) #enable lto if available for non-debug configurations
 
 # Tests
 if (${PROJECT_NAME}_BUILD_TESTS)
