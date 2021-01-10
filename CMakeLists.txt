@@ -25,7 +25,6 @@ include(InstallRequiredSystemLibraries) # Tell CMake that the `install` target n
 include(CMakePackageConfigHelpers)      # Helper to create relocatable packages
 
 # Custom modules and scripts
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake") # Make our cmake scripts available
 
 include(LTO)
@@ -101,7 +100,6 @@ target_link_libraries(${TARGET_NAME}
                       PRIVATE # fmt is only needed to build, not to use this library
                       fmt::fmt
                       )
-
 add_library(${TARGET_NAME}::${TARGET_NAME} ALIAS ${TARGET_NAME})
 
 
