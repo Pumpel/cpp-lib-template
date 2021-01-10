@@ -83,7 +83,8 @@ target_enable_lto(${TARGET_NAME} optimized) #enable lto if available for non-deb
 target_include_directories(${TARGET_NAME}
                            PUBLIC # The folder must be used in the include path for any target using this library
                            $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> # Due to the way installation work, we only want this path set when building, not once installed
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                           # Due to the way installation work, we only want this path set when building, not once installed
                            )
 
 # The following properties are useful when you want to have an 'install' target
