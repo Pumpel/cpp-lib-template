@@ -13,5 +13,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 add_executable(testBasicGTest testbasicgtest.cpp)
-target_link_libraries(testBasicGTest gtest_main)
+target_link_libraries(testBasicGTest PRIVATE gtest_main)
 add_test(NAME testBasicGTest COMMAND testBasicGTest)
+
+add_executable(testFooLib testFooLib.cpp)
+target_link_libraries(testFooLib PRIVATE gtest_main FooLib)
+add_test(NAME testFooLib COMMAND testFooLib)
