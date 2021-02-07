@@ -36,6 +36,7 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 option(${PROJECT_NAME}_USE_DOXYGEN "Add a doxygen target to generate the documentation" ON)
 option(${PROJECT_NAME}_USE_ADDITIONAL_SOURCEFILE "Use the additional source file" ON)
 option(${PROJECT_NAME}_INSTALL "" ON)
+option(${PROJECT_NAME}_EXPORT_TARGETS_TO_USER_REGISTRY "" ON)
 
 # Use own option for tests, in case the library is added through add_subdirectory
 cmake_dependent_option(${PROJECT_NAME}_BUILD_TESTS
@@ -225,15 +226,28 @@ if (${PROJECT_NAME}_INSTALL)
             "${${PROJECT_NAME}_INSTALL_CMAKEDIR}"
             )
 
-    install(FILES
-            "${TARGET_HEADER}"
+            install(DIRECTORY
+            "${PROJECT_SOURCE_DIR}/include/FooLib"
             DESTINATION
-            "${CMAKE_INSTALL_INCLUDEDIR}/FooLib")
+            "${CMAKE_INSTALL_INCLUDEDIR}")
+
+#    install(FILES
+#            "${TARGET_HEADER}"
+#            DESTINATION
+#            "${CMAKE_INSTALL_INCLUDEDIR}/FooLib")
 
     string(TOLOWER "${TARGET_NAME}_export.h" GENERATED_TARGET_EXPORTS_FILE)
     install(FILES
             "${CMAKE_CURRENT_BINARY_DIR}/${GENERATED_TARGET_EXPORTS_FILE}"
             DESTINATION
             "${CMAKE_INSTALL_INCLUDEDIR}/FooLib")
+
+    if (${PROJECT_NAME}_EXPORT_TARGETS_TO_USER_REGISTRY)
+        export(EXPORT ${PROJECT_NAME}_Targets
+               NAMESPACE ${PROJECT_NAME}::
+               FILE "${PROJECT_NAME}Targets.cmake"
+               )
+        export(PACKAGE ${PROJECT_NAME})
+    endif ()
 endif ()
 
